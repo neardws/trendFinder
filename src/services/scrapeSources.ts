@@ -5,8 +5,10 @@ import Parser from "rss-parser";
 
 dotenv.config();
 
-// Initialize Firecrawl
-const app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+// Initialize Firecrawl only if API key is available
+const app = process.env.FIRECRAWL_API_KEY
+  ? new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY })
+  : null;
 
 // Initialize RSS Parser
 const parser = new Parser();
@@ -95,10 +97,11 @@ export async function scrapeSources(
     }
     // --- 2) Handle all other sources with Firecrawl ---
     else {
-      if (useScrape) {
+      if (useScrape && app) {
+        // Skip if Firecrawl is not initialized
         const currentDate = new Date().toLocaleDateString();
         const promptForFirecrawl = `
-Return only today's AI or LLM related story or post headlines and links in JSON format from the page content. 
+Return only today's AI or LLM related story or post headlines and links in JSON format from the page content.
 They must be posted today, ${currentDate}. The format should be:
 {
   "stories": [
@@ -112,8 +115,8 @@ They must be posted today, ${currentDate}. The format should be:
 }
 If there are no AI or LLM stories from today, return {"stories": []}.
 
-The source link is ${source}. 
-If a story link is not absolute, prepend ${source} to make it absolute. 
+The source link is ${source}.
+If a story link is not absolute, prepend ${source} to make it absolute.
 Return only pure JSON in the specified format (no extra text, no markdown, no \`\`\`).
         `;
         try {
