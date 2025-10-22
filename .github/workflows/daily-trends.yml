@@ -1,0 +1,48 @@
+name: Daily AI Trends Finder
+
+on:
+  # 定时触发：每天北京时间下午 5:00 (UTC 09:00)
+  schedule:
+    - cron: '0 9 * * *'
+
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  fetch-ai-trends:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript project
+        run: npm run build
+
+      - name: Run AI Trends Finder
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RSSHUB_INSTANCE: ${{ secrets.RSSHUB_INSTANCE }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+          NOTIFICATION_DRIVER: wechat
+        run: node dist/index.js
+
+      - name: Upload logs (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trend-logs-${{ github.run_number }}
+          path: |
+            *.log
+            logs/
+          retention-days: 7
+          if-no-files-found: ignore

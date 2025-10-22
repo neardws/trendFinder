@@ -1,13 +1,18 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
 import dotenv from "dotenv";
-// Removed Together import
 import { z } from "zod";
-// Removed zodToJsonSchema import since we no longer enforce JSON output via Together
+import Parser from "rss-parser";
 
 dotenv.config();
 
 // Initialize Firecrawl
 const app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+
+// Initialize RSS Parser
+const parser = new Parser();
+
+// Get RSSHub instance URL from environment or use default
+const RSSHUB_INSTANCE = process.env.RSSHUB_INSTANCE || "https://rsshub.app";
 
 // 1. Define the schema for our expected JSON
 const StorySchema = z.object({
@@ -37,57 +42,54 @@ export async function scrapeSources(
 
   // Configure toggles for scrapers
   const useScrape = true;
-  const useTwitter = true;
-  const tweetStartTime = new Date(
-    Date.now() - 24 * 60 * 60 * 1000,
-  ).toISOString();
+  const useRSSHub = true;
 
   for (const sourceObj of sources) {
     const source = sourceObj.identifier;
 
-    // --- 1) Handle Twitter/X sources ---
-    if (source.includes("x.com")) {
-      if (useTwitter) {
-        const usernameMatch = source.match(/x\.com\/([^\/]+)/);
+    // --- 1) Handle Twitter/X sources via RSSHub ---
+    if (source.includes("x.com") || source.includes("twitter.com")) {
+      if (useRSSHub) {
+        // Extract username from URL
+        const usernameMatch = source.match(/(?:x\.com|twitter\.com)\/([^\/]+)/);
         if (!usernameMatch) continue;
         const username = usernameMatch[1];
 
-        // Construct the query and API URL
-        const query = `from:${username} has:media -is:retweet -is:reply`;
-        const encodedQuery = encodeURIComponent(query);
-        const encodedStartTime = encodeURIComponent(tweetStartTime);
-        const apiUrl = `https://api.x.com/2/tweets/search/recent?query=${encodedQuery}&max_results=10&start_time=${encodedStartTime}`;
+        // Construct RSSHub RSS feed URL
+        // Use query parameters directly: readable=1 for better formatting, includeRts=0 to exclude retweets
+        const rsshubUrl = `${RSSHUB_INSTANCE}/twitter/user/${username}?readable=1&includeRts=0`;
 
         try {
-          const response = await fetch(apiUrl, {
-            headers: {
-              Authorization: `Bearer ${process.env.X_API_BEARER_TOKEN}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch tweets for ${username}: ${response.statusText}`,
-            );
-          }
-          const tweets = await response.json();
+          console.log(`Fetching RSS feed for @${username} from RSSHub...`);
+          const feed = await parser.parseURL(rsshubUrl);
 
-          if (tweets.meta?.result_count === 0) {
-            console.log(`No tweets found for username ${username}.`);
-          } else if (Array.isArray(tweets.data)) {
-            console.log(`Tweets found from username ${username}`);
-            const stories = tweets.data.map(
-              (tweet: any): Story => ({
-                headline: tweet.text,
-                link: `https://x.com/i/status/${tweet.id}`,
-                date_posted: tweetStartTime,
+          if (!feed.items || feed.items.length === 0) {
+            console.log(`No tweets found for username @${username}.`);
+          } else {
+            console.log(`Found ${feed.items.length} tweets from @${username}`);
+
+            // Filter tweets from last 24 hours
+            const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+            const recentItems = feed.items.filter((item) => {
+              const pubDate = item.pubDate ? new Date(item.pubDate).getTime() : 0;
+              return pubDate > oneDayAgo;
+            });
+
+            console.log(`${recentItems.length} tweets from last 24 hours`);
+
+            const stories = recentItems.map(
+              (item): Story => ({
+                headline: item.title || item.contentSnippet || "No title",
+                link: item.link || "",
+                date_posted: item.pubDate
+                  ? new Date(item.pubDate).toISOString()
+                  : new Date().toISOString(),
               }),
             );
             combinedText.stories.push(...stories);
-          } else {
-            console.error("Expected tweets.data to be an array:", tweets.data);
           }
         } catch (error: any) {
-          console.error(`Error fetching tweets for ${username}:`, error);
+          console.error(`Error fetching RSS feed for @${username}:`, error.message);
         }
       }
     }

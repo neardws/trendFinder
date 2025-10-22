@@ -6,6 +6,7 @@ dotenv.config();
 /**
  * Generate a post draft based on scraped raw stories.
  * If no items are found, a fallback message is returned.
+ * Uses DeepSeek API instead of OpenAI.
  */
 export async function generateDraft(rawStories: string) {
   console.log(
@@ -16,9 +17,10 @@ export async function generateDraft(rawStories: string) {
     const currentDate = new Date().toLocaleDateString();
     const header = `🚀 AI and LLM Trends on X for ${currentDate}\n\n`;
 
-    // Instantiate the OpenAI client using your OPENAI_API_KEY
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    // Instantiate the OpenAI-compatible client using DeepSeek API
+    const deepseek = new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: "https://api.deepseek.com",
     });
 
     // Prepare messages with explicit literal types
@@ -36,17 +38,16 @@ export async function generateDraft(rawStories: string) {
       },
     ];
 
-    // Call the chat completions API using the o3-mini model
-    const completion = await openai.chat.completions.create({
-      model: "o3-mini",
-      reasoning_effort: "medium",
+    // Call the chat completions API using DeepSeek model
+    const completion = await deepseek.chat.completions.create({
+      model: "deepseek-chat",
       messages,
-      store: true,
+      response_format: { type: "json_object" },
     });
 
     const rawJSON = completion.choices[0].message.content;
     if (!rawJSON) {
-      console.log("No JSON output returned from OpenAI.");
+      console.log("No JSON output returned from DeepSeek.");
       return header + "No output.";
     }
     console.log(rawJSON);
