@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-10-23",
+    "version": "1.0.0"
+  },
+  "dynamicRatio": {
+    "enabled": true,
+    "accountsMin": 30,
+    "accountsMax": 70,
+    "searchMin": 30,
+    "searchMax": 70,
+    "adjustInterval": "daily",
+    "factors": {
+      "accountQuality": 0.4,
+      "searchNovelty": 0.3,
+      "contentDuplication": 0.2,
+      "userEngagement": 0.1
+    }
+  },
+  "qualityThreshold": {
+    "relevance": 70,
+    "quality": 75,
+    "novelty": 60,
+    "impact": 65,
+    "finalScoreMin": 75
+  },
+  "discoveryRules": {
+    "minQualityScore": 80,
+    "minContentCount": 3,
+    "autoAddThreshold": 90,
+    "minFollowers": 1000,
+    "minRelevance": 70
+  },
+  "deduplication": {
+    "enabled": true,
+    "method": "fingerprint",
+    "similarityThreshold": 0.85
+  },
+  "reporting": {
+    "showSourceSplit": true,
+    "highlightSearchFinds": true,
+    "includeStats": true
+  }
+}

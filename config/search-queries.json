@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-10-23",
+    "version": "1.0.0",
+    "totalQueries": 12
+  },
+  "keywords": [
+    {
+      "query": "#AI #MachineLearning",
+      "weight": 10,
+      "category": "general",
+      "enabled": true
+    },
+    {
+      "query": "#LLM #ChatGPT #Claude #Gemini",
+      "weight": 15,
+      "category": "product",
+      "enabled": true
+    },
+    {
+      "query": "#AIResearch #DeepLearning",
+      "weight": 12,
+      "category": "research",
+      "enabled": true
+    },
+    {
+      "query": "GPT-5 OR GPT-6 OR Claude-4",
+      "weight": 15,
+      "category": "product",
+      "enabled": true
+    },
+    {
+      "query": "AI breakthrough",
+      "weight": 14,
+      "category": "research",
+      "enabled": true
+    },
+    {
+      "query": "(OpenAI OR Anthropic OR Google AI) (release OR announcement)",
+      "weight": 13,
+      "category": "product",
+      "enabled": true
+    },
+    {
+      "query": "AGI progress OR artificial general intelligence",
+      "weight": 12,
+      "category": "research",
+      "enabled": true
+    },
+    {
+      "query": "AI模型发布 OR 大模型",
+      "weight": 10,
+      "category": "product",
+      "enabled": true
+    },
+    {
+      "query": "#AgenticAI #AIAgents",
+      "weight": 11,
+      "category": "trend",
+      "enabled": true
+    },
+    {
+      "query": "AI safety OR AI alignment",
+      "weight": 9,
+      "category": "ethics",
+      "enabled": true
+    },
+    {
+      "query": "multimodal AI OR vision language model",
+      "weight": 11,
+      "category": "research",
+      "enabled": true
+    },
+    {
+      "query": "#AIethics #ResponsibleAI",
+      "weight": 8,
+      "category": "ethics",
+      "enabled": true
+    }
+  ],
+  "filters": {
+    "minLikes": 50,
+    "minRetweets": 20,
+    "minFollowers": 1000,
+    "maxAgeHours": 6,
+    "excludeRetweets": true
+  },
+  "limits": {
+    "maxResultsPerQuery": 20,
+    "maxTotalResults": 100,
+    "cacheDurationMinutes": 60
+  }
+}

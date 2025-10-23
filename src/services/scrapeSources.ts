@@ -37,6 +37,8 @@ interface EnhancedStory extends Story {
   imageUrl?: string;
   author?: string;
   pubDate?: string;
+  source: "account" | "search";
+  searchQuery?: string;
 }
 
 /**
@@ -114,6 +116,7 @@ export async function scrapeSources(
                 imageUrl: imageUrl,
                 author: username,
                 pubDate: item.pubDate,
+                source: "account" as const,
               };
             });
 
@@ -168,7 +171,12 @@ Return only pure JSON in the specified format (no extra text, no markdown, no \`
           console.log(
             `Found ${todayStories.stories.length} stories from ${source}`,
           );
-          combinedText.stories.push(...todayStories.stories);
+          // Add source field to each story
+          const enhancedStories = todayStories.stories.map((story) => ({
+            ...story,
+            source: "account" as const,
+          }));
+          combinedText.stories.push(...enhancedStories);
         } catch (error: any) {
           if (error.statusCode === 429) {
             console.error(
