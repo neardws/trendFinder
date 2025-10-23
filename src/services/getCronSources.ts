@@ -1,66 +1,54 @@
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
+interface SourceMetadata {
+  username: string;
+  url: string;
+  category: string;
+  status: string;
+  qualityScore: number;
+}
+
+interface SourceConfig {
+  sources: SourceMetadata[];
+}
+
 export async function getCronSources(): Promise<{ identifier: string }[]> {
   try {
-    console.log("Fetching sources...");
+    console.log("Fetching sources from config file...");
 
-    // Define sources - only Twitter/X sources (no web scraping)
-    const sources: { identifier: string }[] = [
-      // Twitter/X sources now use RSSHub (no API key required)
-      { identifier: "https://x.com/skirano" },
-      // AI Research & Academia
-      { identifier: "https://x.com/AndrewYNg" },
-      { identifier: "https://x.com/ylecun" },
-      { identifier: "https://x.com/drfeifei" },
-      { identifier: "https://x.com/fchollet" },
-      { identifier: "https://x.com/GaryMarcus" },
-      // AI Media & Journalists
-      { identifier: "https://x.com/_KarenHao" },
-      { identifier: "https://x.com/jackclarkSF" },
-      { identifier: "https://x.com/BernardMarr" },
-      // AI Entrepreneurs & Investors
-      { identifier: "https://x.com/sama" },
-      { identifier: "https://x.com/elonmusk" },
-      { identifier: "https://x.com/Benioff" },
-      // AI Tools & Applications
-      { identifier: "https://x.com/kdnuggets" },
-      { identifier: "https://x.com/Deeplearningai_" },
-      { identifier: "https://x.com/AIalignment" },
-      // Chinese AI Community
-      { identifier: "https://x.com/bnu_chenshuo" },
-      { identifier: "https://x.com/gefei55" },
-      { identifier: "https://x.com/wshuyi" },
-      { identifier: "https://x.com/felixding" },
-      // Additional AI Researchers & Experts (from Excel sources)
-      { identifier: "https://x.com/geoffreyhinton" }, // Deep Learning Pioneer
-      { identifier: "https://x.com/karpathy" }, // Former OpenAI, Tesla AI
-      { identifier: "https://x.com/demishassabis" }, // DeepMind CEO
-      { identifier: "https://x.com/RichardSSutton" }, // Reinforcement Learning Pioneer
-      { identifier: "https://x.com/emollick" }, // AI in Education
-      { identifier: "https://x.com/mmitchell_ai" }, // AI Ethics Researcher
-      { identifier: "https://x.com/timnitGebru" }, // AI Ethics Researcher
-      { identifier: "https://x.com/jovialjoy" },
-      // AI Investors & VCs
-      { identifier: "https://x.com/eladgil" },
-      { identifier: "https://x.com/sarahguo" },
-      { identifier: "https://x.com/Conviction" },
-      // AI Companies & Organizations
-      { identifier: "https://x.com/OpenAI" },
-      { identifier: "https://x.com/NVIDIA" },
-      { identifier: "https://x.com/LinkedIn" },
-      { identifier: "https://x.com/Neo4j" },
-      { identifier: "https://x.com/Crynux" },
-      // Other AI Practitioners
-      { identifier: "https://x.com/advait_peri" },
-      { identifier: "https://x.com/depindaddy" },
-    ];
+    // Load sources from JSON config
+    const configPath = path.join(process.cwd(), "config", "sources.json");
 
-    // Return the full objects instead of mapping to strings
-    return sources;
+    if (!fs.existsSync(configPath)) {
+      console.error("Config file not found, using fallback sources");
+      return getFallbackSources();
+    }
+
+    const config: SourceConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+    // Filter active sources only
+    const activeSources = config.sources
+      .filter((source) => source.status === "active")
+      .map((source) => ({ identifier: source.url }));
+
+    console.log(`Loaded ${activeSources.length} active sources from config`);
+    return activeSources;
   } catch (error) {
-    console.error(error);
-    return [];
+    console.error("Error loading sources from config:", error);
+    return getFallbackSources();
   }
+}
+
+// Fallback sources in case config file fails
+function getFallbackSources(): { identifier: string }[] {
+  return [
+    { identifier: "https://x.com/AndrewYNg" },
+    { identifier: "https://x.com/ylecun" },
+    { identifier: "https://x.com/sama" },
+    { identifier: "https://x.com/OpenAI" },
+  ];
 }

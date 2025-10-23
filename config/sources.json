@@ -1,0 +1,344 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-10-23",
+    "version": "1.0.0",
+    "totalSources": 41
+  },
+  "sources": [
+    {
+      "username": "skirano",
+      "url": "https://x.com/skirano",
+      "category": "AI Tools & Design",
+      "addedDate": "2025-10-22",
+      "status": "active",
+      "qualityScore": 85,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "AndrewYNg",
+      "url": "https://x.com/AndrewYNg",
+      "category": "AI Research",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 95,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "ylecun",
+      "url": "https://x.com/ylecun",
+      "category": "AI Research",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 98,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "drfeifei",
+      "url": "https://x.com/drfeifei",
+      "category": "AI Research",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 92,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "fchollet",
+      "url": "https://x.com/fchollet",
+      "category": "AI Research",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 94,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "GaryMarcus",
+      "url": "https://x.com/GaryMarcus",
+      "category": "AI Research",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 88,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "_KarenHao",
+      "url": "https://x.com/_KarenHao",
+      "category": "AI Media",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 82,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "jackclarkSF",
+      "url": "https://x.com/jackclarkSF",
+      "category": "AI Media",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 86,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "BernardMarr",
+      "url": "https://x.com/BernardMarr",
+      "category": "AI Media",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 80,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "sama",
+      "url": "https://x.com/sama",
+      "category": "AI Entrepreneur",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 96,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "elonmusk",
+      "url": "https://x.com/elonmusk",
+      "category": "AI Entrepreneur",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 90,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "Benioff",
+      "url": "https://x.com/Benioff",
+      "category": "AI Entrepreneur",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 78,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "kdnuggets",
+      "url": "https://x.com/kdnuggets",
+      "category": "AI Tools",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 83,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "Deeplearningai_",
+      "url": "https://x.com/Deeplearningai_",
+      "category": "AI Tools",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 91,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "AIalignment",
+      "url": "https://x.com/AIalignment",
+      "category": "AI Research",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 84,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "bnu_chenshuo",
+      "url": "https://x.com/bnu_chenshuo",
+      "category": "Chinese AI",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 75,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "gefei55",
+      "url": "https://x.com/gefei55",
+      "category": "Chinese AI",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 79,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "wshuyi",
+      "url": "https://x.com/wshuyi",
+      "category": "Chinese AI",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 77,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "felixding",
+      "url": "https://x.com/felixding",
+      "category": "Chinese AI",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 76,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "geoffreyhinton",
+      "url": "https://x.com/geoffreyhinton",
+      "category": "AI Research",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 97,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "karpathy",
+      "url": "https://x.com/karpathy",
+      "category": "AI Research",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 96,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "demishassabis",
+      "url": "https://x.com/demishassabis",
+      "category": "AI Research",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 95,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "RichardSSutton",
+      "url": "https://x.com/RichardSSutton",
+      "category": "AI Research",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 93,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "emollick",
+      "url": "https://x.com/emollick",
+      "category": "AI Research",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 89,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "mmitchell_ai",
+      "url": "https://x.com/mmitchell_ai",
+      "category": "AI Ethics",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 87,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "timnitGebru",
+      "url": "https://x.com/timnitGebru",
+      "category": "AI Ethics",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 91,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "jovialjoy",
+      "url": "https://x.com/jovialjoy",
+      "category": "AI Ethics",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 82,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "eladgil",
+      "url": "https://x.com/eladgil",
+      "category": "AI Investor",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 85,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "sarahguo",
+      "url": "https://x.com/sarahguo",
+      "category": "AI Investor",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 83,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "Conviction",
+      "url": "https://x.com/Conviction",
+      "category": "AI Investor",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 81,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "OpenAI",
+      "url": "https://x.com/OpenAI",
+      "category": "AI Company",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 99,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "NVIDIA",
+      "url": "https://x.com/NVIDIA",
+      "category": "AI Company",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 92,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "LinkedIn",
+      "url": "https://x.com/LinkedIn",
+      "category": "AI Company",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 70,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "Neo4j",
+      "url": "https://x.com/Neo4j",
+      "category": "AI Company",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 79,
+      "lastActiveDate": "2025-10-23"
+    },
+    {
+      "username": "Crynux",
+      "url": "https://x.com/Crynux",
+      "category": "AI Company",
+      "addedDate": "2025-10-20",
+      "status": "active",
+      "qualityScore": 72,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "advait_peri",
+      "url": "https://x.com/advait_peri",
+      "category": "AI Practitioner",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 74,
+      "lastActiveDate": "2025-10-22"
+    },
+    {
+      "username": "depindaddy",
+      "url": "https://x.com/depindaddy",
+      "category": "AI Practitioner",
+      "addedDate": "2025-10-21",
+      "status": "active",
+      "qualityScore": 76,
+      "lastActiveDate": "2025-10-23"
+    }
+  ],
+  "candidates": [],
+  "archived": []
+}

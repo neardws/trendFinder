@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "lastSynced": "2025-10-23",
+    "updateFrequency": "weekly"
+  },
+  "externalLists": [
+    {
+      "name": "Awesome AI Researchers",
+      "url": "https://raw.githubusercontent.com/eugeneyan/awesome-ml-researchers/main/README.md",
+      "type": "markdown",
+      "enabled": true
+    },
+    {
+      "name": "AI Twitter Accounts",
+      "url": "https://raw.githubusercontent.com/Machine-Learning-Tokyo/AI_Curriculum/master/twitter_accounts.md",
+      "type": "markdown",
+      "enabled": true
+    }
+  ],
+  "discoveryRules": {
+    "minScore": 85,
+    "minMentions": 3,
+    "relevanceThreshold": 70,
+    "activityDays": 30
+  },
+  "qualityRules": {
+    "archiveInactiveDays": 60,
+    "lowQualityThreshold": 60,
+    "relevanceMin": 40
+  }
+}
