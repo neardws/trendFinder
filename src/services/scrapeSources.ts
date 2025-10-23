@@ -32,15 +32,22 @@ const StoriesSchema = z.object({
 // Define the TypeScript type for a story using the schema
 type Story = z.infer<typeof StorySchema>;
 
+// Extended Story type with additional metadata
+interface EnhancedStory extends Story {
+  imageUrl?: string;
+  author?: string;
+  pubDate?: string;
+}
+
 /**
  * Scrape sources using Firecrawl (for non-Twitter URLs) and the Twitter API.
  * Returns a combined array of story objects.
  */
 export async function scrapeSources(
   sources: { identifier: string }[],
-): Promise<Story[]> {
-  // Explicitly type the stories array so it is Story[]
-  const combinedText: { stories: Story[] } = { stories: [] };
+): Promise<EnhancedStory[]> {
+  // Explicitly type the stories array so it is EnhancedStory[]
+  const combinedText: { stories: EnhancedStory[] } = { stories: [] };
 
   // Configure toggles for scrapers
   const useScrape = true;
@@ -79,15 +86,37 @@ export async function scrapeSources(
 
             console.log(`${recentItems.length} tweets from last 24 hours`);
 
-            const stories = recentItems.map(
-              (item): Story => ({
+            const stories = recentItems.map((item): EnhancedStory => {
+              // Extract image URL from content
+              let imageUrl: string | undefined;
+
+              // Try to extract image from content HTML
+              if (item.content) {
+                const imgMatch = item.content.match(/<img[^>]+src="([^">]+)"/);
+                if (imgMatch) {
+                  imageUrl = imgMatch[1];
+                }
+              }
+
+              // Try to extract from enclosure (media attachments)
+              if (!imageUrl && item.enclosure && item.enclosure.url) {
+                if (item.enclosure.type?.startsWith('image/')) {
+                  imageUrl = item.enclosure.url;
+                }
+              }
+
+              return {
                 headline: item.title || item.contentSnippet || "No title",
                 link: item.link || "",
                 date_posted: item.pubDate
                   ? new Date(item.pubDate).toISOString()
                   : new Date().toISOString(),
-              }),
-            );
+                imageUrl: imageUrl,
+                author: username,
+                pubDate: item.pubDate,
+              };
+            });
+
             combinedText.stories.push(...stories);
           }
         } catch (error: any) {
