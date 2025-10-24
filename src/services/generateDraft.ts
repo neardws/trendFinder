@@ -1,9 +1,12 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
-import { TopicClustering } from "./analysis/topicClustering";
+import { TopicClustering, Topic } from "./analysis/topicClustering";
 import { DeepAnalysis } from "./analysis/deepAnalysis";
 import { ChartGenerator } from "./visualization/chartGenerator";
+import { HistoricalComparison } from "./analysis/historicalComparison";
+import { TrendPrediction } from "./analysis/trendPrediction";
+import { RelationshipAnalysis } from "./analysis/relationshipAnalysis";
 
 dotenv.config();
 
@@ -14,20 +17,30 @@ interface ReportSettings {
     enableDeepAnalysis: boolean;
     enableVisualization: boolean;
     enableRecommendations: boolean;
+    enableHistoricalComparison: boolean;
+    enableTrendPrediction: boolean;
+    enableRelationshipAnalysis: boolean;
   };
+}
+
+interface GenerateDraftResult {
+  draftPost: string;
+  topics: Topic[];
+  avgQualityScore: number;
 }
 
 /**
  * Generate enhanced AI trend report with topic clustering and deep analysis
  */
-export async function generateDraft(rawStories: string) {
+export async function generateDraft(rawStories: string): Promise<GenerateDraftResult> {
   console.log(`Generating enhanced report with ${rawStories.length} characters of data...`);
 
   try {
     const stories = JSON.parse(rawStories);
 
     if (!stories || stories.length === 0) {
-      return generateFallbackReport();
+      const fallback = generateFallbackReport();
+      return { draftPost: fallback, topics: [], avgQualityScore: 0 };
     }
 
     // Load settings
@@ -35,13 +48,21 @@ export async function generateDraft(rawStories: string) {
 
     const currentDate = new Date().toLocaleDateString("zh-CN");
 
+    // Calculate average quality score
+    const avgQualityScore =
+      stories.length > 0
+        ? stories.reduce((sum: number, s: any) => sum + (s.qualityScore?.finalScore || 75), 0) /
+          stories.length
+        : 75;
+
     // Step 1: Topic Clustering
     console.log("\n📑 Step 1: Topic Clustering...");
     const topicClustering = new TopicClustering();
     const topics = await topicClustering.clusterStories(stories);
 
     if (topics.length === 0) {
-      return generateFallbackReport();
+      const fallback = generateFallbackReport();
+      return { draftPost: fallback, topics: [], avgQualityScore };
     }
 
     // Step 2: Deep Analysis
@@ -60,15 +81,65 @@ export async function generateDraft(rawStories: string) {
       charts = chartGenerator.generateCharts(topics, stories);
     }
 
-    // Step 4: Build Enhanced Report
-    console.log("\n✍️  Step 4: Building Report...");
-    const report = buildEnhancedReport(currentDate, topics, analyses, charts, stories, settings);
+    // Step 4: Historical Comparison (if enabled and data exists)
+    let comparison = null;
+    if (settings.reportSettings.enableHistoricalComparison) {
+      try {
+        console.log("\n📊 Step 4: Historical Comparison...");
+        const historicalComparison = new HistoricalComparison();
+        comparison = await historicalComparison.compare(topics, stories, avgQualityScore);
+        historicalComparison.close();
+      } catch (error) {
+        console.warn("Historical comparison skipped (insufficient data):", (error as Error).message);
+      }
+    }
+
+    // Step 5: Trend Prediction (if enabled and comparison data exists)
+    let prediction = null;
+    if (settings.reportSettings.enableTrendPrediction && comparison) {
+      try {
+        console.log("\n🔮 Step 5: Trend Prediction...");
+        const trendPrediction = new TrendPrediction();
+        prediction = await trendPrediction.predict(topics, comparison);
+        trendPrediction.close();
+      } catch (error) {
+        console.warn("Trend prediction skipped:", (error as Error).message);
+      }
+    }
+
+    // Step 6: Relationship Analysis (if enabled)
+    let relationships = null;
+    if (settings.reportSettings.enableRelationshipAnalysis && topics.length >= 2) {
+      try {
+        console.log("\n🔗 Step 6: Relationship Analysis...");
+        const relationshipAnalysis = new RelationshipAnalysis();
+        relationships = await relationshipAnalysis.analyze(topics);
+      } catch (error) {
+        console.warn("Relationship analysis skipped:", (error as Error).message);
+      }
+    }
+
+    // Step 7: Build Enhanced Report
+    console.log("\n✍️  Step 7: Building Report...");
+    const report = buildEnhancedReport(
+      currentDate,
+      topics,
+      analyses,
+      charts,
+      stories,
+      settings,
+      comparison,
+      prediction,
+      relationships,
+      avgQualityScore
+    );
 
     console.log("✅ Enhanced report generated successfully\n");
-    return report;
+    return { draftPost: report, topics, avgQualityScore };
   } catch (error) {
     console.error("Error generating enhanced draft:", error);
-    return generateFallbackReport();
+    const fallback = generateFallbackReport();
+    return { draftPost: fallback, topics: [], avgQualityScore: 0 };
   }
 }
 
@@ -81,7 +152,11 @@ function buildEnhancedReport(
   analyses: Map<string, any>,
   charts: any,
   allStories: any[],
-  settings: ReportSettings
+  settings: ReportSettings,
+  comparison: any,
+  prediction: any,
+  relationships: any,
+  avgQualityScore: number
 ): string {
   let report = `# 🤖 AI 趋势专题报告 | ${currentDate}\n\n`;
 
@@ -90,14 +165,7 @@ function buildEnhancedReport(
   report += `> 📊 **监控账号:** 37 个 | **收集内容:** ${allStories.length} 条 | **质量通过:** ${allStories.length} 条\n`;
   report += `> 🎯 **识别主题:** ${topics.length} 个 | **深度分析:** ${analyses.size} 个专题\n\n`;
 
-  const avgQuality =
-    allStories.length > 0
-      ? Math.round(
-          allStories.reduce((sum, s) => sum + (s.qualityScore?.finalScore || 75), 0) /
-            allStories.length
-        )
-      : 75;
-  report += `📌 **质量评分:** 平均 ${avgQuality} 分 | **数据来源:** 账号追踪 + 关键词搜索\n\n`;
+  report += `📌 **质量评分:** 平均 ${Math.round(avgQualityScore)} 分 | **数据来源:** 账号追踪 + 关键词搜索\n\n`;
 
   // Core Trends Summary
   const topTopicNames = topics.slice(0, 3).map((t) => t.name).join("、");
@@ -124,7 +192,142 @@ function buildEnhancedReport(
     report += `---\n\n`;
   }
 
-  // === Section 3: Topic Reports ===
+  // === Section 3: Historical Comparison ===
+  if (comparison) {
+    report += `## 📊 历史趋势对比\n\n`;
+
+    // Trending topics summary
+    report += `### 📈 话题趋势\n\n`;
+    report += `${comparison.summary}\n\n`;
+
+    if (comparison.trendingTopics.new.length > 0) {
+      report += `**🆕 新增话题:** ${comparison.trendingTopics.new.join("、")}\n\n`;
+    }
+    if (comparison.trendingTopics.continuing.length > 0) {
+      report += `**🔥 持续热议:** ${comparison.trendingTopics.continuing.slice(0, 5).join("、")}\n\n`;
+    }
+    if (comparison.trendingTopics.declining.length > 0) {
+      report += `**📉 热度下降:** ${comparison.trendingTopics.declining.join("、")}\n\n`;
+    }
+
+    // Quality trends
+    report += `### 📊 质量趋势\n\n`;
+    const trendEmoji = comparison.qualityTrends.trend === "rising" ? "📈" :
+                      comparison.qualityTrends.trend === "declining" ? "📉" : "➡️";
+    report += `**当前质量:** ${comparison.qualityTrends.current} 分 ${trendEmoji}\n`;
+    report += `**7天平均:** ${comparison.qualityTrends.average7Days} 分\n`;
+    report += `**30天平均:** ${comparison.qualityTrends.average30Days} 分\n\n`;
+
+    // Account activity
+    if (comparison.accountActivity.rising.length > 0) {
+      report += `### 🚀 活跃度上升账号\n\n`;
+      comparison.accountActivity.rising.forEach((a: any) => {
+        report += `- **@${a.account}** (↑${Math.round(a.change)}%)\n`;
+      });
+      report += `\n`;
+    }
+
+    report += `---\n\n`;
+  }
+
+  // === Section 4: Trend Prediction ===
+  if (prediction) {
+    report += `## 🔮 未来趋势预测\n\n`;
+    report += `${prediction.summary}\n\n`;
+
+    // Emerging topics
+    if (prediction.emergingTopics.length > 0) {
+      report += `### 💫 潜在新兴话题\n\n`;
+      prediction.emergingTopics.forEach((topic: any) => {
+        report += `**${topic.name}** (置信度: ${Math.round(topic.confidence * 100)}%)\n`;
+        report += `${topic.reasoning}\n\n`;
+      });
+    }
+
+    // Topic forecasts
+    if (prediction.topicForecasts.length > 0) {
+      report += `### 📈 话题发展预测\n\n`;
+      prediction.topicForecasts.forEach((forecast: any) => {
+        const trendIcon = forecast.currentTrend === "rising" ? "📈" :
+                         forecast.currentTrend === "declining" ? "📉" : "➡️";
+        report += `**${forecast.name}** ${trendIcon}\n`;
+        report += `${forecast.nextWeekPrediction}\n\n`;
+      });
+    }
+
+    // Market insights
+    if (prediction.marketInsights) {
+      report += `### 💡 市场洞察\n\n`;
+
+      if (prediction.marketInsights.opportunities.length > 0) {
+        report += `**🎯 机会:**\n`;
+        prediction.marketInsights.opportunities.forEach((opp: string) => {
+          report += `- ${opp}\n`;
+        });
+        report += `\n`;
+      }
+
+      if (prediction.marketInsights.risks.length > 0) {
+        report += `**⚠️ 风险:**\n`;
+        prediction.marketInsights.risks.forEach((risk: string) => {
+          report += `- ${risk}\n`;
+        });
+        report += `\n`;
+      }
+
+      if (prediction.marketInsights.recommendations.length > 0) {
+        report += `**📚 建议:**\n`;
+        prediction.marketInsights.recommendations.forEach((rec: string) => {
+          report += `- ${rec}\n`;
+        });
+        report += `\n`;
+      }
+    }
+
+    report += `---\n\n`;
+  }
+
+  // === Section 5: Relationship Analysis ===
+  if (relationships && relationships.topicRelationships.length > 0) {
+    report += `## 🔗 话题关联分析\n\n`;
+
+    // Relationship graph
+    if (relationships.relationshipGraph) {
+      report += `### 关系图谱\n\n`;
+      report += `${relationships.relationshipGraph}\n\n`;
+    }
+
+    // Topic relationships
+    report += `### 话题关联\n\n`;
+    relationships.topicRelationships.forEach((rel: any) => {
+      const strengthEmoji = rel.strength === "strong" ? "🔴" : "🟡";
+      report += `${strengthEmoji} **${rel.topic1}** ⟷ **${rel.topic2}**\n`;
+      report += `${rel.relationship}\n\n`;
+    });
+
+    // Technology connections
+    if (relationships.technologyConnections.length > 0) {
+      report += `### 🔧 技术连接点\n\n`;
+      relationships.technologyConnections.forEach((tech: any) => {
+        report += `**${tech.technology}**\n`;
+        report += `相关话题: ${tech.relatedTopics.join("、")}\n`;
+        report += `${tech.description}\n\n`;
+      });
+    }
+
+    // Cross-topic insights
+    if (relationships.crossTopicInsights.length > 0) {
+      report += `### 💎 跨话题洞察\n\n`;
+      relationships.crossTopicInsights.forEach((insight: string) => {
+        report += `- ${insight}\n`;
+      });
+      report += `\n`;
+    }
+
+    report += `---\n\n`;
+  }
+
+  // === Section 6: Topic Reports ===
   report += `## 📑 专题报告\n\n`;
 
   topics.forEach((topic, topicIndex) => {
@@ -271,6 +474,9 @@ function loadReportSettings(): ReportSettings {
         enableDeepAnalysis: true,
         enableVisualization: true,
         enableRecommendations: true,
+        enableHistoricalComparison: true,
+        enableTrendPrediction: true,
+        enableRelationshipAnalysis: true,
       },
     };
   }

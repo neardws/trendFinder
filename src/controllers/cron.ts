@@ -6,8 +6,14 @@ import { searchAIContent } from "../services/contentMixing/searchContent";
 import { QualityFilter } from "../services/contentMixing/qualityFilter";
 import { ContentMixer } from "../services/contentMixing/contentMixer";
 import { AccountDiscovery } from "../services/contentMixing/accountDiscovery";
+import { HistoryStorage } from "../services/storage/historyStorage";
+import { initDatabase } from "../services/storage/initDatabase";
 
 export const handleCron = async (): Promise<void> => {
+  // Initialize database
+  initDatabase();
+  const historyStorage = new HistoryStorage();
+
   try {
     console.log("=".repeat(60));
     console.log("🚀 Starting TrendFinder with Hybrid Data Sources");
@@ -54,11 +60,17 @@ export const handleCron = async (): Promise<void> => {
     console.log("   - Topic Clustering: AI-powered grouping");
     console.log("   - Deep Analysis: Technical insights + Impact assessment");
     console.log("   - Visualizations: Charts + Word cloud");
+    console.log("   - Historical Data: Saving to database for future trend analysis");
     const rawStoriesString = JSON.stringify(mixed);
-    const draftPost = await generateDraft(rawStoriesString);
+    const { draftPost, topics, avgQualityScore } = await generateDraft(rawStoriesString);
 
-    // Step 8: Send notifications
-    console.log("\n📤 Step 7: Sending notifications...");
+    // Step 8: Save historical data
+    console.log("\n💾 Step 7: Saving historical data...");
+    const reportId = historyStorage.saveDailyReport(mixed, topics, avgQualityScore);
+    console.log(`   Saved report ID: ${reportId}`);
+
+    // Step 9: Send notifications
+    console.log("\n📤 Step 8: Sending notifications...");
     const result = await sendDraft(draftPost!);
     console.log(result);
 
@@ -73,7 +85,11 @@ export const handleCron = async (): Promise<void> => {
     console.log(`   - Duplicates removed: ${stats.duplicatesRemoved}`);
     console.log(`   - New accounts discovered: ${discovery.newAccounts}`);
     console.log(`   - Candidates for review: ${discovery.newCandidates}`);
+    console.log(`   - Report ID saved: ${reportId}`);
   } catch (error) {
     console.error("❌ Error in handleCron:", error);
+  } finally {
+    // Close database connection
+    historyStorage.close();
   }
 };

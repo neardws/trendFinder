@@ -1,0 +1,61 @@
+如果您希望在 X（前身为 Twitter）平台上追踪人工智能（AI）技术的最新趋势，以下是一些值得关注的专家和机构账号，涵盖研究、产业、媒体和投资等多个领域：
+
+---
+
+## 🔬 AI 研究与学术界
+
+* **Andrew Ng (@AndrewYNg)**：斯坦福大学副教授，Coursera 联合创始人，Google Brain 和百度 AI 前负责人。他在机器学习和深度学习领域具有广泛影响力。
+
+* **Yann LeCun (@ylecun)**：Facebook AI 研究院首席科学家，深度学习领域的先驱之一。
+
+* **Fei-Fei Li (@drfeifei)**：斯坦福大学教授，计算机视觉领域的领军人物。
+
+* **François Chollet (@fchollet)**：Keras 框架的创始人，Google DeepMind 的研究员，深度学习领域的知名专家。
+
+* **Gary Marcus (@GaryMarcus)**：人工智能领域的批判性声音，关注 AI 的可解释性和安全性。
+
+---
+
+## 📰 AI 媒体与记者
+
+* **Karen Hao (@_KarenHao)**：《华尔街日报》AI 记者，曾报道 OpenAI、Anthropic 等公司的动态。
+
+* **Jack Clark (@jackclarkSF)**：OpenAI 前政策与传播负责人，现创立了 Anthropic，关注 AI 的政策和伦理问题。
+
+* **Bernard Marr (@BernardMarr)**：数据科学和 AI 的知名作家，定期发布行业分析和趋势预测。
+
+---
+
+## 💼 AI 企业家与投资人
+
+* **Sam Altman (@sama)**：OpenAI 的 CEO，人工智能领域的重要人物。
+
+* **Elon Musk (@elonmusk)**：xAI 的创始人，关注 AI 的发展和监管。
+
+* **Marc Benioff (@Benioff)**：Salesforce 的创始人，关注 AI 在企业中的应用。
+
+---
+
+## 🧠 AI 工具与应用
+
+* **KDnuggets (@kdnuggets)**：数据科学和 AI 的资源平台，分享最新的工具和教程。
+
+* **Deeplearning.ai (@Deeplearningai_)**：Andrew Ng 创办的 AI 教育平台，提供最新的课程和资讯。
+
+* **AI Alignment (@AIalignment)**：关注 AI 安全性和对齐问题的研究机构。
+
+---
+
+## 🇨🇳 中文 AI 领域账号推荐
+
+* **bnu_chenshuo**：Muduo 框架的作者，关注系统编程和 AI 技术。
+
+* **gefei55**：专注于 AI 工具和出海方向的创业者。
+
+* **wshuyi**：天津师范大学副教授，研究方向包括 AI 和自然语言处理。
+
+* **felixding**：Ruo Yu 的创始人，关注 AI 和创业。
+
+---
+
+您可以通过关注这些账号，获取 AI 技术的最新动态、研究成果和行业趋势。如果您对某个特定领域（如生成式 AI、AI 安全性、AI 投资等）感兴趣，欢迎告诉我，我可以为您提供更有针对性的推荐。

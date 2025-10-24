@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "version": "2.0.0",
-    "lastUpdated": "2025-10-23",
-    "description": "Enhanced AI trend report settings with topic clustering and deep analysis"
+    "version": "3.0.0",
+    "lastUpdated": "2025-10-24",
+    "description": "Full-featured AI trend report with historical analysis and predictions"
   },
   "reportSettings": {
     "detailLevel": "enhanced",
@@ -10,6 +10,9 @@
     "enableDeepAnalysis": true,
     "enableVisualization": true,
     "enableRecommendations": true,
+    "enableHistoricalComparison": true,
+    "enableTrendPrediction": true,
+    "enableRelationshipAnalysis": true,
     "minStoriesPerTopic": 2,
     "maxTopics": 8,
     "analysisLength": {
@@ -23,9 +26,14 @@
     "enableTopicDistribution": true,
     "enableAccountActivity": true,
     "enableKeywordCloud": true,
-    "enableTopicRelationship": false,
+    "enableTopicRelationship": true,
     "maxAccountsInChart": 10,
     "maxKeywordsInCloud": 20
+  },
+  "historicalSettings": {
+    "comparisonDays": 7,
+    "longTermDays": 30,
+    "predictionDays": 7
   },
   "contentSettings": {
     "showImages": true,
