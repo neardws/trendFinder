@@ -99,12 +99,93 @@ function createTables(db: Database.Database) {
     )
   `);
 
+  // Table: entities (for entity recognition)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS entities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      type TEXT NOT NULL,
+      context TEXT,
+      first_seen TEXT NOT NULL,
+      last_seen TEXT NOT NULL,
+      mention_count INTEGER DEFAULT 1,
+      avg_confidence REAL NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  `);
+
+  // Table: entity_mentions (track where entities appear)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS entity_mentions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_id INTEGER NOT NULL,
+      story_link TEXT NOT NULL,
+      context TEXT NOT NULL,
+      confidence REAL NOT NULL,
+      mentioned_at TEXT NOT NULL,
+      FOREIGN KEY (entity_id) REFERENCES entities(id)
+    )
+  `);
+
+  // Table: entity_relationships (track relationships between entities)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS entity_relationships (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity1_id INTEGER NOT NULL,
+      entity2_id INTEGER NOT NULL,
+      relationship_type TEXT NOT NULL,
+      confidence REAL NOT NULL,
+      first_seen TEXT NOT NULL,
+      last_seen TEXT NOT NULL,
+      mention_count INTEGER DEFAULT 1,
+      FOREIGN KEY (entity1_id) REFERENCES entities(id),
+      FOREIGN KEY (entity2_id) REFERENCES entities(id)
+    )
+  `);
+
+  // Table: influence_scores (track account influence over time)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS influence_scores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      account TEXT NOT NULL,
+      overall_score REAL NOT NULL,
+      reach_score REAL NOT NULL,
+      quality_score REAL NOT NULL,
+      relevance_score REAL NOT NULL,
+      consistency_score REAL NOT NULL,
+      engagement_score REAL NOT NULL,
+      rank INTEGER NOT NULL,
+      trend TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  `);
+
+  // Table: export_history (track report exports)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS export_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id INTEGER NOT NULL,
+      format TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      exported_at TEXT NOT NULL,
+      FOREIGN KEY (report_id) REFERENCES daily_reports(id)
+    )
+  `);
+
   // Create indexes
   db.exec(`CREATE INDEX IF NOT EXISTS idx_daily_reports_date ON daily_reports(date)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_daily_stories_report_id ON daily_stories(report_id)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_daily_topics_report_id ON daily_topics(report_id)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_trending_topics_date ON trending_topics(date)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_account_activity_date ON account_activity(date)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entity_mentions_entity_id ON entity_mentions(entity_id)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entity_relationships_entities ON entity_relationships(entity1_id, entity2_id)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_influence_scores_date_account ON influence_scores(date, account)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_export_history_report_id ON export_history(report_id)`);
 }
 
 /**
