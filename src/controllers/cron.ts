@@ -49,8 +49,11 @@ export const handleCron = async (): Promise<void> => {
     const discovery = await accountDiscovery.discoverAccounts(searchOnlyStories);
     console.log(`   ${discovery.newAccounts} accounts auto-added, ${discovery.newCandidates} candidates for review`);
 
-    // Step 7: Generate draft report
-    console.log("\n✍️  Step 6: Generating AI trend report...");
+    // Step 7: Generate enhanced report (with topic clustering + deep analysis)
+    console.log("\n✍️  Step 6: Generating Enhanced AI Trend Report...");
+    console.log("   - Topic Clustering: AI-powered grouping");
+    console.log("   - Deep Analysis: Technical insights + Impact assessment");
+    console.log("   - Visualizations: Charts + Word cloud");
     const rawStoriesString = JSON.stringify(mixed);
     const draftPost = await generateDraft(rawStoriesString);
 

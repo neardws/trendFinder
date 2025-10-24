@@ -22,6 +22,8 @@
   "dependencies": {
     "@mendable/firecrawl-js": "^1.17.0",
     "@supabase/supabase-js": "^2.46.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.4.1",
     "dotenv": "^14.3.2",
     "express": "^4.18.2",
     "express-async-handler": "^1.2.0",

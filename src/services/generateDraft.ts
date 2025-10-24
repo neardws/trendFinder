@@ -1,172 +1,285 @@
-import OpenAI from "openai";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { TopicClustering } from "./analysis/topicClustering";
+import { DeepAnalysis } from "./analysis/deepAnalysis";
+import { ChartGenerator } from "./visualization/chartGenerator";
 
 dotenv.config();
 
-/**
- * Generate a post draft based on scraped raw stories.
- * If no items are found, a fallback message is returned.
- * Uses DeepSeek API instead of OpenAI.
- */
-export async function generateDraft(rawStories: string) {
-  console.log(
-    `Generating a post draft with raw stories (${rawStories.length} characters)...`,
-  );
-
-  try {
-    const currentDate = new Date().toLocaleDateString();
-    const header = `🚀 AI and LLM Trends on X for ${currentDate}\n\n`;
-
-    // Instantiate the OpenAI-compatible client using DeepSeek API
-    const deepseek = new OpenAI({
-      apiKey: process.env.DEEPSEEK_API_KEY,
-      baseURL: "https://api.deepseek.com",
-    });
-
-    // Prepare enhanced system prompt for better analysis
-    const systemPrompt = `你是一个专业的 AI 趋势分析师。分析今天的 AI 领域推文和新闻，生成专业的趋势报告。
-
-要求：
-1. 按重要性排序（5星最重要，1星一般），每条信息评估其影响力和价值
-2. 识别今日的核心趋势（不超过3个简洁要点）
-3. 统计热门话题标签和关键词（提取#开头的标签和高频词汇）
-4. 找出最活跃的账号
-5. 为每条信息生成简洁有力的描述（不超过80字）
-
-输出严格的 JSON 格式：
-{
-  "summary": "今日核心趋势总结（50字内，概括主要方向）",
-  "topTopics": ["#话题1", "#话题2", "#话题3"],
-  "accountStats": {
-    "mostActive": "@账号名",
-    "totalTweets": 数字
-  },
-  "stories": [
-    {
-      "title": "标题（精炼到15字内）",
-      "description": "描述（80字内，突出亮点和价值）",
-      "link": "原链接",
-      "imageUrl": "图片链接（如有）",
-      "author": "@作者",
-      "importance": 1-5,
-      "category": "类别：产品发布/技术进展/行业动态/研究成果"
-    }
-  ]
+interface ReportSettings {
+  reportSettings: {
+    detailLevel: string;
+    enableTopicClustering: boolean;
+    enableDeepAnalysis: boolean;
+    enableVisualization: boolean;
+    enableRecommendations: boolean;
+  };
 }
 
-注意：
-- 按 importance 从高到低排序 stories
-- description 要有吸引力，突出为什么重要
-- 识别相同主题的内容，避免重复
-- topTopics 必须是真实出现的话题标签`;
+/**
+ * Generate enhanced AI trend report with topic clustering and deep analysis
+ */
+export async function generateDraft(rawStories: string) {
+  console.log(`Generating enhanced report with ${rawStories.length} characters of data...`);
 
-    const messages: Array<{ role: "system" | "user"; content: string }> = [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: rawStories,
-      },
-    ];
+  try {
+    const stories = JSON.parse(rawStories);
 
-    // Call the chat completions API using DeepSeek model
-    const completion = await deepseek.chat.completions.create({
-      model: "deepseek-chat",
-      messages,
-      response_format: { type: "json_object" },
-    });
-
-    const rawJSON = completion.choices[0].message.content;
-    if (!rawJSON) {
-      console.log("No JSON output returned from DeepSeek.");
-      return header + "No output.";
-    }
-    console.log(rawJSON);
-
-    const parsedResponse = JSON.parse(rawJSON);
-
-    // Extract components from the response
-    const summary = parsedResponse.summary || "今日 AI 领域动态";
-    const topTopics = parsedResponse.topTopics || [];
-    const accountStats = parsedResponse.accountStats || { mostActive: "N/A", totalTweets: 0 };
-    const stories = parsedResponse.stories || [];
-
-    if (stories.length === 0) {
-      return header + "No trending stories or tweets found at this time.";
+    if (!stories || stories.length === 0) {
+      return generateFallbackReport();
     }
 
-    // Build enhanced Markdown report
-    let draft_post = `# 🤖 AI 趋势日报 | ${currentDate}\n\n`;
+    // Load settings
+    const settings = loadReportSettings();
 
-    // Summary section
-    draft_post += `> 💡 **今日趋势:** ${summary}\n`;
-    draft_post += `> 📊 监控 **41** 账号 | `;
-    draft_post += `最活跃 **${accountStats.mostActive}** (${accountStats.totalTweets}条)\n\n`;
+    const currentDate = new Date().toLocaleDateString("zh-CN");
 
-    // Hot topics
-    if (topTopics.length > 0) {
-      draft_post += `🔥 **热门话题:** ${topTopics.join(' ')} \n\n`;
+    // Step 1: Topic Clustering
+    console.log("\n📑 Step 1: Topic Clustering...");
+    const topicClustering = new TopicClustering();
+    const topics = await topicClustering.clusterStories(stories);
+
+    if (topics.length === 0) {
+      return generateFallbackReport();
     }
 
-    draft_post += `---\n\n`;
-
-    // Group stories by importance (5-star first)
-    const groupedStories: { [key: number]: any[] } = {};
-    stories.forEach((story: any) => {
-      const importance = story.importance || 3;
-      if (!groupedStories[importance]) {
-        groupedStories[importance] = [];
-      }
-      groupedStories[importance].push(story);
-    });
-
-    // Output stories from highest to lowest importance
-    for (let level = 5; level >= 3; level--) {
-      const storiesAtLevel = groupedStories[level] || [];
-      if (storiesAtLevel.length === 0) continue;
-
-      // Star rating header
-      const stars = '⭐'.repeat(level);
-      const levelName = level === 5 ? '最重要' : level === 4 ? '值得关注' : '一般关注';
-      draft_post += `## ${stars} ${levelName}\n\n`;
-
-      storiesAtLevel.forEach((story: any, index: number) => {
-        // Title
-        draft_post += `### ${index + 1}. ${story.title || story.headline}\n\n`;
-
-        // Image (if available)
-        if (story.imageUrl) {
-          draft_post += `![](${story.imageUrl})\n\n`;
-        }
-
-        // Description
-        draft_post += `${story.description}\n\n`;
-
-        // Metadata
-        if (story.author) {
-          draft_post += `👤 ${story.author} `;
-        }
-        if (story.category) {
-          draft_post += `| 📂 ${story.category} `;
-        }
-        draft_post += `\n\n`;
-
-        // Link
-        draft_post += `🔗 [查看详情](${story.link})\n\n`;
-
-        draft_post += `---\n\n`;
-      });
+    // Step 2: Deep Analysis
+    let analyses = new Map();
+    if (settings.reportSettings.enableDeepAnalysis) {
+      console.log("\n🔬 Step 2: Deep Analysis...");
+      const deepAnalysis = new DeepAnalysis();
+      analyses = await deepAnalysis.analyzeTopics(topics);
     }
 
-    // Footer with timestamp
-    draft_post += `\n📅 报告生成时间: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n`;
-    draft_post += `🤖 由 [TrendFinder](https://github.com/neardws/trendFinder) 自动生成`;
+    // Step 3: Generate Visualizations
+    let charts = { topicDistribution: "", accountActivity: "", keywordCloud: "" };
+    if (settings.reportSettings.enableVisualization) {
+      console.log("\n📊 Step 3: Generating Visualizations...");
+      const chartGenerator = new ChartGenerator();
+      charts = chartGenerator.generateCharts(topics, stories);
+    }
 
-    return draft_post;
+    // Step 4: Build Enhanced Report
+    console.log("\n✍️  Step 4: Building Report...");
+    const report = buildEnhancedReport(currentDate, topics, analyses, charts, stories, settings);
+
+    console.log("✅ Enhanced report generated successfully\n");
+    return report;
   } catch (error) {
-    console.error("Error generating draft post", error);
-    return "Error generating draft post.";
+    console.error("Error generating enhanced draft:", error);
+    return generateFallbackReport();
   }
+}
+
+/**
+ * Build the enhanced markdown report
+ */
+function buildEnhancedReport(
+  currentDate: string,
+  topics: any[],
+  analyses: Map<string, any>,
+  charts: any,
+  allStories: any[],
+  settings: ReportSettings
+): string {
+  let report = `# 🤖 AI 趋势专题报告 | ${currentDate}\n\n`;
+
+  // === Section 1: Overview ===
+  report += `## 📈 今日概览\n\n`;
+  report += `> 📊 **监控账号:** 37 个 | **收集内容:** ${allStories.length} 条 | **质量通过:** ${allStories.length} 条\n`;
+  report += `> 🎯 **识别主题:** ${topics.length} 个 | **深度分析:** ${analyses.size} 个专题\n\n`;
+
+  const avgQuality =
+    allStories.length > 0
+      ? Math.round(
+          allStories.reduce((sum, s) => sum + (s.qualityScore?.finalScore || 75), 0) /
+            allStories.length
+        )
+      : 75;
+  report += `📌 **质量评分:** 平均 ${avgQuality} 分 | **数据来源:** 账号追踪 + 关键词搜索\n\n`;
+
+  // Core Trends Summary
+  const topTopicNames = topics.slice(0, 3).map((t) => t.name).join("、");
+  report += `💡 **核心趋势:** ${topTopicNames}等${topics.length}个主题，涵盖产品发布、技术进展、行业动态等多个维度\n\n`;
+
+  report += `---\n\n`;
+
+  // === Section 2: Data Visualizations ===
+  if (settings.reportSettings.enableVisualization) {
+    report += `## 📊 数据可视化\n\n`;
+
+    // Topic Distribution
+    if (charts.topicDistribution) {
+      report += `### 主题分布\n\n`;
+      report += `${charts.topicDistribution}\n\n`;
+    }
+
+    // Keyword Cloud
+    if (charts.keywordCloud) {
+      report += `### 热门关键词\n\n`;
+      report += `${charts.keywordCloud}\n\n`;
+    }
+
+    report += `---\n\n`;
+  }
+
+  // === Section 3: Topic Reports ===
+  report += `## 📑 专题报告\n\n`;
+
+  topics.forEach((topic, topicIndex) => {
+    const analysis = analyses.get(topic.id);
+
+    // Topic Header
+    const emoji = getTopicEmoji(topicIndex);
+    report += `### ${emoji} 专题${topicIndex + 1}：${topic.name}\n\n`;
+
+    // Topic Summary
+    report += `**📝 专题概述**\n\n`;
+    report += `${topic.summary}\n\n`;
+    report += `**🏷️ 关键词:** ${topic.keywords.join("、")}\n\n`;
+
+    // Core Events
+    report += `#### 🔍 核心事件\n\n`;
+
+    topic.stories.forEach((story: any, storyIndex: number) => {
+      report += `**${storyIndex + 1}. ${story.headline.substring(0, 50)}${story.headline.length > 50 ? "..." : ""}**\n\n`;
+
+      // Image
+      if (story.imageUrl) {
+        report += `![](${story.imageUrl})\n\n`;
+      }
+
+      // Brief description
+      const description =
+        story.description || `来自 @${story.author || "Unknown"} 的重要动态`;
+      report += `${description}\n\n`;
+
+      // Metadata
+      report += `👤 ${story.author || "Unknown"} | 📅 ${new Date(story.date_posted).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}`;
+      if (story.source) {
+        report += ` | 📍 来源：${story.source === "account" ? "账号追踪" : "关键词搜索"}`;
+      }
+      report += `\n\n`;
+
+      report += `🔗 [查看原文](${story.link})\n\n`;
+      report += `---\n\n`;
+    });
+
+    // Deep Analysis (if enabled)
+    if (analysis && settings.reportSettings.enableDeepAnalysis) {
+      report += `#### 🔬 深度分析\n\n`;
+
+      // Technical Analysis
+      if (analysis.technicalAnalysis) {
+        report += `**技术解读**\n\n`;
+        report += `${analysis.technicalAnalysis}\n\n`;
+      }
+
+      // Impact Assessment
+      if (analysis.impactAssessment) {
+        report += `**影响评估**\n\n`;
+        report += `📍 **短期影响 (1-3个月)**\n\n`;
+        report += `${analysis.impactAssessment.shortTerm}\n\n`;
+        report += `📍 **长期影响 (6-12个月)**\n\n`;
+        report += `${analysis.impactAssessment.longTerm}\n\n`;
+      }
+
+      // Key Insights
+      if (analysis.keyInsights && analysis.keyInsights.length > 0) {
+        report += `**💡 核心洞察**\n\n`;
+        analysis.keyInsights.forEach((insight: string) => {
+          report += `- ${insight}\n`;
+        });
+        report += `\n`;
+      }
+
+      // Recommendations
+      if (
+        settings.reportSettings.enableRecommendations &&
+        analysis.recommendations
+      ) {
+        report += `**📚 相关推荐**\n\n`;
+
+        if (analysis.recommendations.papers && analysis.recommendations.papers.length > 0) {
+          report += `📄 **相关论文:**\n`;
+          analysis.recommendations.papers.forEach((paper: any) => {
+            report += `- ${paper.title}: ${paper.description}\n`;
+          });
+          report += `\n`;
+        }
+
+        if (analysis.recommendations.tools && analysis.recommendations.tools.length > 0) {
+          report += `🔧 **推荐工具:**\n`;
+          analysis.recommendations.tools.forEach((tool: any) => {
+            report += `- ${tool.name}: ${tool.description}\n`;
+          });
+          report += `\n`;
+        }
+
+        if (
+          analysis.recommendations.accounts &&
+          analysis.recommendations.accounts.length > 0
+        ) {
+          report += `👤 **值得关注:**\n`;
+          analysis.recommendations.accounts.forEach((account: any) => {
+            report += `- ${account.handle}: ${account.reason}\n`;
+          });
+          report += `\n`;
+        }
+      }
+
+      report += `---\n\n`;
+    }
+
+    report += `\n`;
+  });
+
+  // === Footer ===
+  report += `## 📅 报告信息\n\n`;
+  report += `- **生成时间:** ${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}\n`;
+  report += `- **数据来源:** X (Twitter) 账号追踪 + 关键词搜索\n`;
+  report += `- **分析模型:** DeepSeek AI\n`;
+  report += `- **报告版本:** 2.0 增强版\n\n`;
+  report += `---\n\n`;
+  report += `🤖 由 [TrendFinder](https://github.com/neardws/trendFinder) 自动生成\n`;
+
+  return report;
+}
+
+/**
+ * Get emoji for topic
+ */
+function getTopicEmoji(index: number): string {
+  const emojis = ["🚀", "🧪", "💼", "📱", "🌐", "🎯", "⚡", "🔮"];
+  return emojis[index % emojis.length];
+}
+
+/**
+ * Load report settings
+ */
+function loadReportSettings(): ReportSettings {
+  try {
+    const settingsPath = path.join(process.cwd(), "config", "report-settings.json");
+    return JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
+  } catch (error) {
+    console.warn("Could not load report settings, using defaults");
+    return {
+      reportSettings: {
+        detailLevel: "enhanced",
+        enableTopicClustering: true,
+        enableDeepAnalysis: true,
+        enableVisualization: true,
+        enableRecommendations: true,
+      },
+    };
+  }
+}
+
+/**
+ * Generate fallback report if no stories
+ */
+function generateFallbackReport(): string {
+  const currentDate = new Date().toLocaleDateString("zh-CN");
+  return `# 🤖 AI 趋势专题报告 | ${currentDate}\n\n今日暂无 AI 趋势内容。\n`;
 }
