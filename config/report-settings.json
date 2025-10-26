@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "version": "3.0.0",
+    "version": "3.1.0",
     "lastUpdated": "2025-10-24",
-    "description": "Full-featured AI trend report with historical analysis and predictions"
+    "description": "Full-featured AI trend report with entity recognition, influence scoring, and multi-format export"
   },
   "reportSettings": {
     "detailLevel": "enhanced",
@@ -13,6 +13,8 @@
     "enableHistoricalComparison": true,
     "enableTrendPrediction": true,
     "enableRelationshipAnalysis": true,
+    "enableEntityRecognition": true,
+    "enableInfluenceScoring": true,
     "minStoriesPerTopic": 2,
     "maxTopics": 8,
     "analysisLength": {
@@ -27,8 +29,25 @@
     "enableAccountActivity": true,
     "enableKeywordCloud": true,
     "enableTopicRelationship": true,
+    "enableEntityGraph": true,
     "maxAccountsInChart": 10,
-    "maxKeywordsInCloud": 20
+    "maxKeywordsInCloud": 20,
+    "maxEntitiesInGraph": 20
+  },
+  "entitySettings": {
+    "minConfidence": 0.7,
+    "maxEntitiesPerType": 10,
+    "enableRelationshipGraph": true
+  },
+  "influenceSettings": {
+    "topAccountsLimit": 20,
+    "kolThreshold": 75,
+    "risingStarThreshold": 1.2
+  },
+  "exportSettings": {
+    "enableAutoExport": false,
+    "formats": ["html", "pdf", "json", "markdown"],
+    "outputDirectory": "exports"
   },
   "historicalSettings": {
     "comparisonDays": 7,

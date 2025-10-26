@@ -7,6 +7,8 @@ import { ChartGenerator } from "./visualization/chartGenerator";
 import { HistoricalComparison } from "./analysis/historicalComparison";
 import { TrendPrediction } from "./analysis/trendPrediction";
 import { RelationshipAnalysis } from "./analysis/relationshipAnalysis";
+import { EntityRecognition, EntityRecognitionResult } from "./analysis/entityRecognition";
+import { InfluenceScoring, InfluenceReport } from "./analysis/influenceScoring";
 
 dotenv.config();
 
@@ -20,6 +22,8 @@ interface ReportSettings {
     enableHistoricalComparison: boolean;
     enableTrendPrediction: boolean;
     enableRelationshipAnalysis: boolean;
+    enableEntityRecognition: boolean;
+    enableInfluenceScoring: boolean;
   };
 }
 
@@ -27,6 +31,8 @@ interface GenerateDraftResult {
   draftPost: string;
   topics: Topic[];
   avgQualityScore: number;
+  entities?: EntityRecognitionResult;
+  influenceReport?: InfluenceReport;
 }
 
 /**
@@ -119,8 +125,32 @@ export async function generateDraft(rawStories: string): Promise<GenerateDraftRe
       }
     }
 
-    // Step 7: Build Enhanced Report
-    console.log("\n✍️  Step 7: Building Report...");
+    // Step 7: Entity Recognition (if enabled)
+    let entities = undefined;
+    if (settings.reportSettings.enableEntityRecognition) {
+      try {
+        console.log("\n🔍 Step 7: Entity Recognition...");
+        const entityRecognition = new EntityRecognition();
+        entities = await entityRecognition.extractEntities(stories);
+      } catch (error) {
+        console.warn("Entity recognition skipped:", (error as Error).message);
+      }
+    }
+
+    // Step 8: Influence Scoring (if enabled)
+    let influenceReport = undefined;
+    if (settings.reportSettings.enableInfluenceScoring) {
+      try {
+        console.log("\n📊 Step 8: Influence Scoring...");
+        const influenceScoring = new InfluenceScoring();
+        influenceReport = influenceScoring.generateInfluenceReport(stories);
+      } catch (error) {
+        console.warn("Influence scoring skipped:", (error as Error).message);
+      }
+    }
+
+    // Step 9: Build Enhanced Report
+    console.log("\n✍️  Step 9: Building Report...");
     const report = buildEnhancedReport(
       currentDate,
       topics,
@@ -131,11 +161,13 @@ export async function generateDraft(rawStories: string): Promise<GenerateDraftRe
       comparison,
       prediction,
       relationships,
-      avgQualityScore
+      avgQualityScore,
+      entities,
+      influenceReport
     );
 
     console.log("✅ Enhanced report generated successfully\n");
-    return { draftPost: report, topics, avgQualityScore };
+    return { draftPost: report, topics, avgQualityScore, entities, influenceReport };
   } catch (error) {
     console.error("Error generating enhanced draft:", error);
     const fallback = generateFallbackReport();
@@ -156,7 +188,9 @@ function buildEnhancedReport(
   comparison: any,
   prediction: any,
   relationships: any,
-  avgQualityScore: number
+  avgQualityScore: number,
+  entities?: any,
+  influenceReport?: any
 ): string {
   let report = `# 🤖 AI 趋势专题报告 | ${currentDate}\n\n`;
 
@@ -327,7 +361,131 @@ function buildEnhancedReport(
     report += `---\n\n`;
   }
 
-  // === Section 6: Topic Reports ===
+  // === Section 6: Entity Recognition ===
+  if (entities && entities.entities && entities.entities.length > 0) {
+    report += `## 🔍 实体识别\n\n`;
+    report += `${entities.summary}\n\n`;
+
+    // Group entities by type
+    const entityTypes = {
+      person: entities.entities.filter((e: any) => e.type === "person"),
+      company: entities.entities.filter((e: any) => e.type === "company"),
+      product: entities.entities.filter((e: any) => e.type === "product"),
+      technology: entities.entities.filter((e: any) => e.type === "technology"),
+      organization: entities.entities.filter((e: any) => e.type === "organization"),
+    };
+
+    // Display each entity type
+    if (entityTypes.person.length > 0) {
+      report += `### 👤 关键人物\n\n`;
+      entityTypes.person.forEach((entity: any) => {
+        report += `**${entity.name}**`;
+        if (entity.confidence >= 0.9) report += ` ⭐`;
+        report += `\n${entity.context}\n\n`;
+      });
+    }
+
+    if (entityTypes.company.length > 0) {
+      report += `### 🏢 相关公司\n\n`;
+      entityTypes.company.forEach((entity: any) => {
+        report += `**${entity.name}**`;
+        if (entity.confidence >= 0.9) report += ` ⭐`;
+        report += `\n${entity.context}\n\n`;
+      });
+    }
+
+    if (entityTypes.product.length > 0) {
+      report += `### 📱 产品动态\n\n`;
+      entityTypes.product.forEach((entity: any) => {
+        report += `**${entity.name}**`;
+        if (entity.confidence >= 0.9) report += ` ⭐`;
+        report += `\n${entity.context}\n\n`;
+      });
+    }
+
+    if (entityTypes.technology.length > 0) {
+      report += `### 🔧 技术要点\n\n`;
+      entityTypes.technology.forEach((entity: any) => {
+        report += `**${entity.name}**`;
+        if (entity.confidence >= 0.9) report += ` ⭐`;
+        report += `\n${entity.context}\n\n`;
+      });
+    }
+
+    if (entityTypes.organization.length > 0) {
+      report += `### 🎓 研究机构\n\n`;
+      entityTypes.organization.forEach((entity: any) => {
+        report += `**${entity.name}**`;
+        if (entity.confidence >= 0.9) report += ` ⭐`;
+        report += `\n${entity.context}\n\n`;
+      });
+    }
+
+    // Entity relationship graph
+    if (entities.relationshipGraph) {
+      report += `### 🔗 实体关系图谱\n\n`;
+      report += `${entities.relationshipGraph}\n\n`;
+    }
+
+    report += `---\n\n`;
+  }
+
+  // === Section 7: Influence Scoring ===
+  if (influenceReport) {
+    report += `## 🏆 影响力排行榜\n\n`;
+    report += `${influenceReport.summary}\n\n`;
+
+    // Top Accounts
+    if (influenceReport.topAccounts.length > 0) {
+      report += `### 📊 综合影响力 TOP ${Math.min(10, influenceReport.topAccounts.length)}\n\n`;
+
+      influenceReport.topAccounts.slice(0, 10).forEach((account: any) => {
+        const trendEmoji = account.trend === "rising" ? "📈" :
+                          account.trend === "declining" ? "📉" : "➡️";
+
+        report += `**${account.rank}. @${account.account}** ${trendEmoji}\n`;
+        report += `> 综合评分: **${account.overallScore}** 分\n`;
+        report += `> 📊 覆盖度: ${account.dimensions.reach} | 🎯 质量: ${account.dimensions.quality} | 🔗 相关性: ${account.dimensions.relevance}\n`;
+        report += `> ⏰ 一致性: ${account.dimensions.consistency} | 💬 互动度: ${account.dimensions.engagement}\n`;
+
+        if (account.keyContributions && account.keyContributions.length > 0) {
+          report += `> 💡 关键贡献: ${account.keyContributions.slice(0, 2).join("、")}\n`;
+        }
+        report += `\n`;
+      });
+    }
+
+    // KOLs (Key Opinion Leaders)
+    if (influenceReport.kols && influenceReport.kols.length > 0) {
+      report += `### 🌟 KOL (关键意见领袖)\n\n`;
+      report += `以下账号在 AI 领域具有显著影响力 (综合评分 ≥ 75):\n\n`;
+      report += influenceReport.kols.map((kol: string) => `- @${kol}`).join("\n");
+      report += `\n\n`;
+    }
+
+    // Rising Stars
+    if (influenceReport.risingStars && influenceReport.risingStars.length > 0) {
+      report += `### ⭐ 新兴影响力账号\n\n`;
+      report += `以下账号最近表现活跃，影响力快速上升:\n\n`;
+      report += influenceReport.risingStars.map((star: string) => `- @${star}`).join("\n");
+      report += `\n\n`;
+    }
+
+    // Top Content
+    if (influenceReport.topContent && influenceReport.topContent.length > 0) {
+      report += `### 🔥 高影响力内容 TOP 5\n\n`;
+
+      influenceReport.topContent.slice(0, 5).forEach((content: any, index: number) => {
+        report += `**${index + 1}. ${content.headline.substring(0, 60)}${content.headline.length > 60 ? "..." : ""}**\n`;
+        report += `👤 @${content.author} | 📊 影响力评分: ${content.influenceScore}\n`;
+        report += `🔗 [查看原文](${content.link})\n\n`;
+      });
+    }
+
+    report += `---\n\n`;
+  }
+
+  // === Section 8: Topic Reports ===
   report += `## 📑 专题报告\n\n`;
 
   topics.forEach((topic, topicIndex) => {
@@ -477,6 +635,8 @@ function loadReportSettings(): ReportSettings {
         enableHistoricalComparison: true,
         enableTrendPrediction: true,
         enableRelationshipAnalysis: true,
+        enableEntityRecognition: true,
+        enableInfluenceScoring: true,
       },
     };
   }

@@ -4,6 +4,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { getDatabase } from "../storage/initDatabase";
 
+// Re-export HTMLReportData for external use
+export { HTMLReportData } from "./htmlGenerator";
+
 export type ExportFormat = "html" | "pdf" | "json" | "markdown";
 
 export interface ExportOptions {
